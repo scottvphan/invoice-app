@@ -5,7 +5,7 @@ export default function DataHandler(props:any){
     
     useEffect(() =>{
         setTimeout(() =>{
-            fetch('../../data.json')
+            fetch('../../\assets\data.json')
             .then(res => res.json())
             .then(data => {
                 props.setData(data)
