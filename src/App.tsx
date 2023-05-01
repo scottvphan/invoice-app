@@ -134,7 +134,7 @@ export default function App() {
     useEffect(() => {
         if(isAuthenticated){
             if(localStorage.getItem(`${user?.email}`) === null){
-                fetch("\assets\data.json")
+                fetch("/assets/data.json")
                 .then((res) => res.json())
                 .then((data) => {
                     setData([]);
@@ -152,7 +152,7 @@ export default function App() {
             }
         } else{
             if (localStorage.getItem(`data`) === null) {
-                fetch("\assets\data.json")
+                fetch("/assets/data.json")
                     .then((res) => res.json())
                     .then((data) => {
                         setData(data);
