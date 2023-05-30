@@ -1,6 +1,4 @@
 import { useAuth0 } from "@auth0/auth0-react";
-// import LoginButton from "../components/LoginButton";
-// import LogoutButton from "../components/LogoutButton";
 import Profile from "./components/Profile";
 import { useState, useEffect } from "react";
 import { ThemeProvider, createGlobalStyle } from "styled-components";
@@ -13,12 +11,11 @@ import {
 import Home from "./pages/Home";
 import InvoicePage from "./pages/InvoicePage";
 import NotFound from "./pages/NotFound";
-import Login from "./components/Login";
 import Layout from "./components/Layout";
-import { propsType, dataType, Address, Item } from "./Types";
-import { Auth0Provider, AuthorizationParams } from "@auth0/auth0-react";
+import { DataType, Address, Item } from "./Types";
 import Loader from "./components/Loader";
-import AccountPage from "./pages/AccountPage";
+import { initializeApp } from "firebase/app";
+import { getDatabase, ref, set, onValue, push, child, off, get } from "firebase/database";
 
 const GlobalStyles = createGlobalStyle<MyTheme>`
     body{
@@ -36,7 +33,6 @@ const GlobalStyles = createGlobalStyle<MyTheme>`
 
     ::-webkit-scrollbar-thumb {
         background: linear-gradient(to bottom, #7C5DFA, #5e35ff)
-      /* background: #7C5DFA; */
     }
 
     ::-webkit-scrollbar-thumb:hover {
@@ -66,22 +62,22 @@ type MyTheme = {
 
 export default function App() {
     const { isAuthenticated, user, isLoading } = useAuth0();
-    const [isDarkModeSaved, setIsDarkModeSaved] = useState<boolean>(false);
-    const [data, setData] = useState<dataType | unknown>("");
+    const [data, setData] = useState<DataType | unknown>("");
     const [dataLoaded, setDataLoaded] = useState<boolean>(false);
-    const [previouslyOpened, setPreviouslyOpened] = useState(false);
     const [isDraft, setIsDraft] = useState(true);
     const [isPending, setIsPending] = useState(true);
     const [isPaid, setIsPaid] = useState(true);
-    const [userData, setUserData] = useState<any>("");
 
-    const colorScheme = () =>{
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            return true
+    const colorScheme = () => {
+        if (
+            window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches
+        ) {
+            return true;
         } else {
-            return false
+            return false;
         }
-    }
+    };
 
     const [isDarkMode, setIsDarkMode] = useState<boolean>(colorScheme);
 
@@ -106,6 +102,7 @@ export default function App() {
         data: data,
         setData: setData,
     };
+
     const router = createBrowserRouter(
         createRoutesFromElements(
             <Route path="/" element={<Layout {...navbarProps} />}>
@@ -117,40 +114,84 @@ export default function App() {
                     />
                 </Route>
                 <Route path="*" element={<NotFound />} />
-                <Route path="/account" element={<AccountPage />} />
             </Route>
         )
     );
 
-    useEffect(() => {
-        if(localStorage.getItem('colorscheme') === 'false'){
-            setIsDarkMode(false)
-        }
-        if(localStorage.getItem('colorscheme') === 'true'){
-            setIsDarkMode(true)
-        }
-    }, [isDarkMode])
+    const firebaseConfig = {
+        apiKey: "AIzaSyC0kmQknp7zr8l10lWYelt7AesZ4UA-x6Y",
+        authDomain: "invoice-app-b1eb0.firebaseapp.com",
+        databaseURL: "https://invoice-app-b1eb0-default-rtdb.firebaseio.com",
+        projectId: "invoice-app-b1eb0",
+        storageBucket: "invoice-app-b1eb0.appspot.com",
+        messagingSenderId: "730679038015",
+        appId: "1:730679038015:web:57b0f244fffde30b77e88a",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
 
     useEffect(() => {
-        if(isAuthenticated){
-            if(localStorage.getItem(`${user?.email}`) === null){
-                fetch("/assets/data.json")
-                .then((res) => res.json())
-                .then((data) => {
+        if(isAuthenticated && user?.email){
+            const replacedEmail = user?.email.replace(".", ",");
+            const colorSchemeRef = ref(
+                database,
+                `users/${replacedEmail}/isDarkMode`
+            );
+            get(colorSchemeRef)
+                .then((snapshot) => {
+                    if (snapshot.exists()) {
+                        set(colorSchemeRef, isDarkMode);
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error getting colorSchemeRef:', error);
+                });
+        }
+        else{
+            if (localStorage.getItem("colorscheme") === "false") {
+                setIsDarkMode(false);
+            }
+            if (localStorage.getItem("colorscheme") === "true") {
+                setIsDarkMode(true);
+            }
+        }
+    }, [isDarkMode]);
+
+    useEffect(() =>{
+        if(isAuthenticated && user?.email){
+            const replacedEmail = user?.email.replace(".", ",");
+            const colorSchemeRef = ref(
+                database,
+                `users/${replacedEmail}/isDarkMode`
+            );
+            get(colorSchemeRef)
+            .then((snapshot) => {
+                if (snapshot.exists()) {
+                    setIsDarkMode(snapshot.val());
+                }
+            })
+        }
+    }, [isAuthenticated])
+
+    useEffect(() => {
+        if (isAuthenticated && user?.email) {
+            const replacedEmail = user?.email.replace(".", ",");
+            const invoicesRef = ref(
+                database,
+                `users/${replacedEmail}/invoices`
+            );
+            onValue(invoicesRef, (snapshot) => {
+                if (snapshot.val() === null) {
                     setData([]);
                     setDataLoaded(true);
-                    localStorage.setItem(`${user?.email}`, JSON.stringify([]));
-                });
-            } else{
-                if (localStorage.getItem(`${user?.email}`) !== null){
-                    const data = JSON.parse(
-                        localStorage.getItem(`${user?.email}`) as string
-                    );
-                    setData(data);
+                } else {
+                    const invoiceValues = Object.values(snapshot.val());
+                    setData(invoiceValues);
                     setDataLoaded(true);
                 }
-            }
-        } else{
+            });
+        } else {
             if (localStorage.getItem(`data`) === null) {
                 fetch("/assets/data.json")
                     .then((res) => res.json())
@@ -159,35 +200,37 @@ export default function App() {
                         setDataLoaded(true);
                         localStorage.setItem("data", JSON.stringify(data));
                     });
-        } else {
+                setData(data);
+                setDataLoaded(true);
+                localStorage.setItem(`data`, JSON.stringify(data));
+            } else {
                 if (localStorage.getItem(`data`) !== null) {
-                    const data = JSON.parse(
-                        localStorage.getItem(`data`) as string
-                    );
-                    setData(data);
-                    setDataLoaded(true);
+                    if(!isAuthenticated && !isLoading){
+                        const storedData = localStorage.getItem(`data`);
+                        const data = storedData !== null ? JSON.parse(storedData) : null;
+                        setData(data);
+                        setDataLoaded(true);
+                    }
                 }
+            }
         }
-        }
-    }, [isAuthenticated]);
+    }, [isLoading]);
+    
 
-    return (
-        isLoading ? 
-            <ThemeProvider theme={isDarkMode ? DarkTheme : LightTheme}>
-                <GlobalStyles />
-                <Loader isDarkMode={isDarkMode} />
-            </ThemeProvider>
-        :
-        isAuthenticated ? (
-            <ThemeProvider theme={isDarkMode ? DarkTheme : LightTheme}>
-                <GlobalStyles />
-                <RouterProvider router={router} />
-            </ThemeProvider>
-        ) : (
-            <ThemeProvider theme={isDarkMode ? DarkTheme : LightTheme}>
-                <GlobalStyles />
-                <RouterProvider router={router} />
-            </ThemeProvider>
-        )
-    )
+    return isLoading ? (
+        <ThemeProvider theme={isDarkMode ? DarkTheme : LightTheme}>
+            <GlobalStyles />
+            <Loader isDarkMode={isDarkMode} />
+        </ThemeProvider>
+    ) : isAuthenticated ? (
+        <ThemeProvider theme={isDarkMode ? DarkTheme : LightTheme}>
+            <GlobalStyles />
+            <RouterProvider router={router} />
+        </ThemeProvider>
+    ) : (
+        <ThemeProvider theme={isDarkMode ? DarkTheme : LightTheme}>
+            <GlobalStyles />
+            <RouterProvider router={router} />
+        </ThemeProvider>
+    );
 }

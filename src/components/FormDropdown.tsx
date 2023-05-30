@@ -106,11 +106,9 @@ const ListItem = styled.li`
         outline: none;
     }
 `
-export default function FormDropdown(props:any){
+export default function FormDropdown({ onChange, error, isSubmit, setIsSubmit, isDarkMode, invoiceData, isFormEdit}:any){
     const [isOpen, setIsOpen] = useState(false)
     const [selectedOption, setSelectedOption] = useState('Select The Day')
-
-    const options = ["Net 1 Day", "Net 7 Days", "Net 14 Days", "Net 30 Days"]
 
     let dropdownRef = useRef<HTMLInputElement>(null);
 
@@ -132,9 +130,9 @@ export default function FormDropdown(props:any){
         document.addEventListener('mousedown', handler)
     })
     useEffect(() =>{
-            props.setIsSubmit(false)
+            setIsSubmit(false)
             setSelectedOption("Select The Day")
-    }, [props.isSubmit])
+    }, [isSubmit])
 
     const DarkTheme = {
         dropdownHeaderBg:"#1E2139",
@@ -154,14 +152,14 @@ export default function FormDropdown(props:any){
     }
 
     return(
-        <ThemeProvider theme={props.isDarkMode ? DarkTheme : LightTheme}>
-            <DropDownContainer className={props.error ? "error" : ""} ref={dropdownRef}>
-                <DropDownHeaderContainer tabIndex={0} onKeyDown={handleEnterKey} onClick={toggleOpen}>
-                {props.isFormEdit ? 
+        <ThemeProvider theme={isDarkMode ? DarkTheme : LightTheme}>
+            <DropDownContainer className={error ? "error" : ""} ref={dropdownRef}>
+                <DropDownHeaderContainer role="form-dropdown" tabIndex={0} onKeyDown={handleEnterKey} onClick={toggleOpen}>
+                {isFormEdit ? 
                     selectedOption != 'Select The Day' ? 
                     <SmallHeading>{selectedOption}</SmallHeading>
                     :
-                    <SmallHeading>{props.invoiceData.paymentTerms != undefined ? 'Net ' + props.invoiceData.paymentTerms + (props.invoiceData.paymentTerms === 1 ? " Day" : " Days") : "Select The Day"}</SmallHeading>
+                    <SmallHeading>{invoiceData.paymentTerms != '' ? 'Net ' + invoiceData.paymentTerms + (invoiceData.paymentTerms === 1 ? " Day" : " Days") : "Select The Day"}</SmallHeading>
                     :
                     <SmallHeading>{selectedOption}</SmallHeading>
                 }
@@ -171,18 +169,40 @@ export default function FormDropdown(props:any){
                 }       
                 </DropDownHeaderContainer>
             {isOpen && (
-                <DropdownListContainer className={props.error ? "error" : ""} >
+                <DropdownListContainer className={error ? "error" : ""} >
                     <DropDownList>
-                        {options.map(option =>(
-                            <ListItem onClick={(option:any) =>{
-                                setIsOpen(false)
-                                setSelectedOption(option.target.innerText)
-                                const string = option.target.innerText.replace("Net ", "").replace(" Day", "").replace("s", "") 
-                                props.onChange(
-                                    Number(string)
-                                )
-                            }} key={uuidv4()} tabIndex={0}>{option}</ListItem>
-                        ))}
+                        <ListItem onClick={() =>{
+                            setIsOpen(false)
+                            setSelectedOption("Net 1 Day")
+                            onChange(
+                                Number(1)
+                            )
+                            }} role={"Net 1"} key={uuidv4()} tabIndex={0}>Net 1 Day
+                        </ListItem>
+                        <ListItem onClick={() =>{
+                            setIsOpen(false)
+                            setSelectedOption("Net 7 Day")
+                            onChange(
+                                Number(7)
+                            )
+                            }} role={"Net 7"} key={uuidv4()} tabIndex={0}>Net 7 Day
+                        </ListItem>
+                        <ListItem onClick={() =>{
+                            setIsOpen(false)
+                            setSelectedOption("Net 14 Day")
+                            onChange(
+                                Number(14)
+                            )
+                            }} role={"Net 14"} key={uuidv4()} tabIndex={0}>Net 14 Day
+                        </ListItem>
+                        <ListItem onClick={() =>{
+                            setIsOpen(false)
+                            setSelectedOption("Net 30 Day")
+                            onChange(
+                                Number(30)
+                            )
+                            }} role={"Net 30"} key={uuidv4()} tabIndex={0}>Net 30 Day
+                        </ListItem>
                     </DropDownList>
                 </DropdownListContainer>
             )}

@@ -17,8 +17,7 @@ const LoadingHeading = styled.h1`
     font-size:40px;
     color:${(theme) => theme.theme.loadingColor};
 `
-export default function Loader(props:any){
-
+export default function Loader({isDarkMode}:any){
     const DarkTheme = {
         loadingColor: "white"
     }
@@ -26,8 +25,8 @@ export default function Loader(props:any){
         loadingColor: "black"
     }
     return(
-        <ThemeProvider theme = {props.isDarkMode ? DarkTheme : LightTheme}>
-            <LoaderContainer>
+        <ThemeProvider theme = {isDarkMode ? DarkTheme : LightTheme}>
+            <LoaderContainer role='loader'>
                 <RadarSpinner color="#9277FF"/>
                 <LoadingHeading>Loading...</LoadingHeading>
             </LoaderContainer> 

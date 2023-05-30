@@ -9,7 +9,7 @@ function Index() {
   }
 
   return(
-    <div>
+    <>
       <Auth0Provider
       {...options}
       authorizationParams={{
@@ -18,7 +18,7 @@ function Index() {
       >
         <App />
       </Auth0Provider>
-    </div>
+    </>
   )
 }
 

@@ -80,70 +80,69 @@ const LightTheme = {
     draftColor:"#DFE3FA",
     inputColor:"#000000",
 }
-export default function FormComponent(props:FormComponentProps) {
+export default function FormComponent({ setIsFormOpen, isFormOpen, isDarkMode, userFormData, setUserFormData, isFormEdit, setIsFormEdit, invoiceData, setInvoiceData }:FormComponentProps) {
     const [isSubmit, setIsSubmit] = useState(false)
     const [duePayment, setDuePayment] = useState('')
     const [itemsTotal, setItemsTotal] = useState(0)
     const [usedIds, setUsedIds] = useState<any>()
     const navigate = useNavigate()
     interface FormInputs {
-        id:string;
-        senderAddress?:{
-            street?: string;
-            city?: string;
-            postCode?: number;
-            country?: string;
-        },
         clientAddress?:{
             street?: string;
             city?: string;
             postCode?: number;
             country?: string;
         },
-        clientName: string;
         clientEmail: string;
-        invoiceDate: string;
+        clientName: string;
+        createdAt: string | null;
         description: string;
+        id:string;
         items?: {
             name?: string;
-            quantity?: number;
-            price?: string;
-            total?: number;
+            quantity?: number | undefined;
+            price?: number | undefined;
+            total?: number | undefined;
         }[]
-        createdAt: string | null;
         paymentDue: string;
         paymentTerms: number | null;
         status: string;
+        senderAddress?:{
+            street?: string;
+            city?: string;
+            postCode?: number;
+            country?: string;
+        },
         total: number;
     }
     
     const schema = z.object({
-        id: z.string(),
-        createdAt: z.string(),
-        paymentDue: z.string(),
-        description: z.string().nonempty({message: "can't be empty"}),
-        paymentTerms: z.number().min(1).max(30),
-        clientName: z.string().nonempty({message: "can't be empty"}),
-        clientEmail: z.string().nonempty({message: "can't be empty"}).email({message: 'invalid email address'}),
-        status: z.string(),
-        senderAddress: z.object({
-            street: z.string().nonempty({message: "can't be empty"}),
-            city: z.string().nonempty({message: "can't be empty"}),
-            postCode: z.string().nonempty({message: "can't be empty"}),
-            country: z.string().nonempty({message: "can't be empty"}),
-        }),
         clientAddress: z.object({
-            street: z.string().nonempty({message: "can't be empty"}),
             city: z.string().nonempty({message: "can't be empty"}),
-            postCode: z.string().nonempty({message: "can't be empty"}),
             country: z.string().nonempty({message: "can't be empty"}),
+            postCode: z.string().nonempty({message: "can't be empty"}),
+            street: z.string().nonempty({message: "can't be empty"}),
         }),
+        clientEmail: z.string().nonempty({message: "can't be empty"}).email({message: 'invalid email address'}),
+        clientName: z.string().nonempty({message: "can't be empty"}),
+        createdAt: z.string(),
+        description: z.string().nonempty({message: "can't be empty"}),
+        id: z.string(),
         items: z.array(z.object({
             name: z.string().nonempty(),
-            quantity: z.number(),
-            price: z.number(),
+            price: z.any(),
+            quantity: z.any(),
             total: z.number(),
         })).min(1, {message: "an item must be added"}),
+        paymentDue: z.string(),
+        paymentTerms: z.number().min(1).max(30),
+        senderAddress: z.object({
+            city: z.string().nonempty({message: "can't be empty"}),
+            country: z.string().nonempty({message: "can't be empty"}),
+            postCode: z.string().nonempty({message: "can't be empty"}),
+            street: z.string().nonempty({message: "can't be empty"}),
+        }),
+        status: z.string(),
         total: z.number(),
     })
     
@@ -167,8 +166,8 @@ export default function FormComponent(props:FormComponentProps) {
         items: z.array(
         z.object({
             name: z.string().optional(),
-            quantity: z.number().optional(),
-            price: z.number().optional(),
+            quantity: z.any().optional(),
+            price: z.any().optional(),
             total: z.number().optional(),
         }),
         ).optional(),
@@ -185,34 +184,58 @@ export default function FormComponent(props:FormComponentProps) {
         setValue,
     } = useForm<FormInputs>({
         resolver: zodResolver(schema),
-        defaultValues: props.isFormEdit ? {
-            id: props.invoiceData.id,
-            createdAt: props.invoiceData.createdAt,
-            paymentDue: props.invoiceData.paymentDue,
-            description: props.invoiceData.description,
-            paymentTerms: props.invoiceData.paymentTerms,
-            clientName: props.invoiceData.clientName,
-            clientEmail: props.invoiceData.clientEmail,
-            status: props.invoiceData.status,
-            senderAddress: {
-                street: props.invoiceData.senderAddress.street,
-                city: props.invoiceData.senderAddress.city,
-                postCode: props.invoiceData.senderAddress.postCode,
-                country: props.invoiceData.senderAddress.country,
-            },
+        defaultValues: isFormEdit ? invoiceData.items ? {
             clientAddress: {
-                street: props.invoiceData.clientAddress.street,
-                city: props.invoiceData.clientAddress.city,
-                postCode: props.invoiceData.clientAddress.postCode,
-                country: props.invoiceData.clientAddress.country,
+                city: invoiceData.clientAddress.city,
+                country: invoiceData.clientAddress.country,
+                postCode: invoiceData.clientAddress.postCode,
+                street: invoiceData.clientAddress.street,
             },
-            items: props.invoiceData.items.map((item:any) =>({
+            clientEmail: invoiceData.clientEmail,
+            clientName: invoiceData.clientName,
+            createdAt: invoiceData.createdAt,
+            description: invoiceData.description,
+            id: invoiceData.id,
+            items: invoiceData.items.map((item:any) =>({
                 name: item.name,
-                quantity: item.quantity,
                 price: item.price,
+                quantity: item.quantity,
                 total: item.total,
             })),
-            total: props.invoiceData.total,
+            paymentDue: invoiceData.paymentDue,
+            paymentTerms: invoiceData.paymentTerms,
+            senderAddress: {
+                city: invoiceData.senderAddress.city,
+                country: invoiceData.senderAddress.country,
+                postCode: invoiceData.senderAddress.postCode,
+                street: invoiceData.senderAddress.street,
+            },
+            status: invoiceData.status,
+            total: invoiceData.total,
+        } : 
+        {
+            clientAddress: {
+                city: invoiceData.clientAddress.city,
+                country: invoiceData.clientAddress.country,
+                postCode: invoiceData.clientAddress.postCode,
+                street: invoiceData.clientAddress.street,
+            },
+            clientEmail: invoiceData.clientEmail,
+            clientName: invoiceData.clientName,
+            createdAt: invoiceData.createdAt,
+            description: invoiceData.description,
+            id: invoiceData.id,
+            items: [],
+            paymentDue: invoiceData.paymentDue,
+            paymentTerms: invoiceData.paymentTerms,
+            senderAddress: {
+                city: invoiceData.senderAddress.city,
+                country: invoiceData.senderAddress.country,
+                postCode: invoiceData.senderAddress.postCode,
+                street: invoiceData.senderAddress.street,
+            },
+            status: invoiceData.status,
+            total: invoiceData.total,
         } : undefined
     });
 
@@ -221,7 +244,7 @@ export default function FormComponent(props:FormComponentProps) {
         control,
     })
 
-    function handleTotalPrice(index: number): ChangeEventHandler<HTMLInputElement> {
+    function handleTotalPrice(index: number): any {
         const quantity = watch(`items.${index}.quantity`) as unknown as number;
         const price = watch(`items.${index}.price`) as unknown as number;
         const watchTotal = watch(`items.${index}.total`) as unknown as number;
@@ -236,9 +259,7 @@ export default function FormComponent(props:FormComponentProps) {
                 setValue(`items.${index}.total`, total)
             }
         }
-    
-        return (event: React.ChangeEvent<HTMLInputElement>) => {
-        };
+
     }
 
     useEffect(() =>{
@@ -252,58 +273,44 @@ export default function FormComponent(props:FormComponentProps) {
     }, [duePayment])
 
     function handleClose(e:any){
-        props.setIsFormOpen(false)
-        props.setIsFormEdit(false)
+        setIsFormOpen(false)
+        setIsFormEdit(false)
     }
 
     function onSave(): void {
         setValue('status', 'draft')
-        const data = getValues()
-        draftSchema.parse(data)
-        if(!props.isFormEdit){
-            props.setUserFormData(data);
+        const formData = getValues()
+        const data = draftSchema.parse(formData)
+        if(!isFormEdit){
+            setUserFormData(formData);
             setIsSubmit(true);
-            props.setIsFormOpen(false);
+            setIsFormOpen(false);
             reset();
-            props.setInvoiceData(undefined)
+            setInvoiceData(undefined)
         } else{
-            const filteredData = props.data.filter((data:any) =>{
-                if(data.id !== props.invoiceData.id){
-                    return data
-                }
-            })
-            props.setData(filteredData)
-            props.setUserFormData(data)
+            setUserFormData(formData)
             navigate('..')
             setIsSubmit(true);
-            props.setIsFormOpen(false);
+            setIsFormOpen(false);
             reset();
-            props.setIsFormEdit(false)
-            props.setInvoiceData(undefined)
         }
+
     }
 
     function onSubmit(data: FormInputs): void {
-        if(!props.isFormEdit){
-            props.setUserFormData(data);
+        if(!isFormEdit){
+            setUserFormData(data);
             setIsSubmit(true);
-            props.setIsFormOpen(false);
+            setIsFormOpen(false);
             reset();
         } else{
-            const filteredData = props.data.filter((data:any) =>{
-                if(data.id !== props.invoiceData.id){
-                    return data
-                }
-            })
             const formData = getValues()
             const result = {...formData, status:'pending'}
-            props.setData(filteredData)
-            props.setUserFormData(result)
+            setUserFormData(result)
             navigate('..')
             setIsSubmit(true);
-            props.setIsFormOpen(false);
+            setIsFormOpen(false);
             reset();
-            props.setIsFormEdit(false)
         }
     }
 
@@ -327,16 +334,6 @@ export default function FormComponent(props:FormComponentProps) {
         }
     }, [watch('createdAt'), watch('paymentTerms')])
 
-    function test(e:any){
-        e.preventDefault()
-        const senderAddress = getValues('senderAddress')
-        const senderAddressSpread = { ...senderAddress }
-        const clientAddress = getValues('clientAddress')
-        const street = senderAddress?.street ?? '';
-        const city = senderAddress?.city ?? '';
-        const postCode = senderAddress?.postCode ?? '';
-        const country = senderAddress?.country ?? '';
-    }
     useEffect(() => {
         let sum = 0;
         for (let i = 0; i < fields.length; i++) {
@@ -352,15 +349,15 @@ export default function FormComponent(props:FormComponentProps) {
     }, [itemsTotal])
     
     return (
-        <ThemeProvider theme={props.isDarkMode ? DarkTheme : LightTheme}>
+        <ThemeProvider theme={isDarkMode ? DarkTheme : LightTheme}>
             <FormContainer>
                 <Form onSubmit={handleSubmit(onSubmit)}>
                     <GoBackHeading onClick={handleClose}>
                         <SVG src="\assets\icon-arrow-left.svg" />
                         <SmallHeading>Go Back</SmallHeading>
                     </GoBackHeading>
-                    {props.isFormEdit ? 
-                    <MainHeading>Edit #{props.invoiceData.id}</MainHeading>
+                    {isFormEdit ? 
+                    <MainHeading>Edit #{invoiceData.id}</MainHeading>
                     :
                     <MainHeading>New Invoice</MainHeading>
                     }
@@ -368,7 +365,7 @@ export default function FormComponent(props:FormComponentProps) {
                         <FormHeading>Bill From</FormHeading>
                         <InputContainer>
                             <LabelContainer>
-                                <InputLabel htmlFor="senderAddress">
+                                <InputLabel htmlFor="senderStreet">
                                     Street Address
                                 </InputLabel>
                                 {errors.senderAddress?.street && (
@@ -380,14 +377,14 @@ export default function FormComponent(props:FormComponentProps) {
                                     errors.senderAddress?.street ? "full error" : "full"
                                 }
                                 type="text"
-                                id="streetAddress"
+                                id="senderStreet"
                                 {...register("senderAddress.street", { required: true })}
                             />
                         </InputContainer>
                         <InputDividedContainer>
                             <InputContainer>
                                 <LabelContainer>
-                                    <InputLabel htmlFor="city">City</InputLabel>
+                                    <InputLabel htmlFor="senderCity">City</InputLabel>
                                     {errors.senderAddress?.city && (
                                         <ErrorLabel>can't be empty</ErrorLabel>
                                     )}
@@ -395,13 +392,13 @@ export default function FormComponent(props:FormComponentProps) {
                                 <input
                                     className={errors.senderAddress?.city ? "error" : ""}
                                     type="text"
-                                    id='city'
+                                    id='senderCity'
                                     {...register("senderAddress.city", { required: true })}
                                 />
                             </InputContainer>
                             <InputContainer>
                                 <LabelContainer>
-                                    <InputLabel htmlFor="postCode">
+                                    <InputLabel htmlFor="senderPostCode">
                                         Post Code
                                     </InputLabel>
                                     {errors.senderAddress?.postCode && (
@@ -411,12 +408,13 @@ export default function FormComponent(props:FormComponentProps) {
                                 <input
                                     className={errors.senderAddress?.postCode ? "error" : ""}
                                     type="text"
+                                    id='senderPostCode'
                                     {...register("senderAddress.postCode", { required: true })}
                                 />
                             </InputContainer>
                             <InputContainer>
                                 <LabelContainer>
-                                    <InputLabel htmlFor="country">
+                                    <InputLabel htmlFor="senderCountry">
                                         Country
                                     </InputLabel>
                                     {errors.senderAddress?.country && (
@@ -426,6 +424,7 @@ export default function FormComponent(props:FormComponentProps) {
                                 <input
                                     className={errors.senderAddress?.country ? "error" : ""}
                                     type="text"
+                                    id='senderCountry'
                                     {...register("senderAddress.country", { required: true })}
                                 />
                             </InputContainer>
@@ -471,7 +470,7 @@ export default function FormComponent(props:FormComponentProps) {
                         </InputContainer>
                         <InputContainer>
                             <LabelContainer>
-                                <InputLabel htmlFor="clientAddress">
+                                <InputLabel htmlFor="clientStreet">
                                     Street Address
                                 </InputLabel>
                                 {errors.clientAddress?.street && (
@@ -483,7 +482,7 @@ export default function FormComponent(props:FormComponentProps) {
                                     errors.clientAddress?.street ? "full error" : "full"
                                 }
                                 type="text"
-                                id="clientAddress"
+                                id="clientStreet"
                                 {...register("clientAddress.street", { required: true })}
                                 />
                         </InputContainer>
@@ -500,6 +499,7 @@ export default function FormComponent(props:FormComponentProps) {
                                 <input
                                     className={errors.clientAddress?.city ? "error" : ""}
                                     type="text"
+                                    id='clientCity'
                                     {...register("clientAddress.city", { required: true })}
                                 />
                             </InputContainer>
@@ -515,6 +515,7 @@ export default function FormComponent(props:FormComponentProps) {
                                 <input
                                     className={errors.clientAddress?.postCode ? "error" : ""}
                                     type="text"
+                                    id='clientPostCode'
                                     {...register("clientAddress.postCode", {
                                         required: true,
                                     })}
@@ -532,6 +533,7 @@ export default function FormComponent(props:FormComponentProps) {
                                 <input
                                     className={errors.clientAddress?.country ? "error" : ""}
                                     type="text"
+                                    id='clientCountry'
                                     {...register("clientAddress.country", {
                                         required: true,
                                     })}
@@ -556,9 +558,9 @@ export default function FormComponent(props:FormComponentProps) {
                                         error={errors.createdAt}
                                         isSubmit = {isSubmit}
                                         setIsSubmit = {setIsSubmit}
-                                        isDarkMode = {props.isDarkMode}
-                                        invoiceData = {props.invoiceData}
-                                        isFormEdit = {props.isFormEdit}
+                                        isDarkMode = {isDarkMode}
+                                        invoiceData = {invoiceData}
+                                        isFormEdit = {isFormEdit}
                                     />
                                 )}
                             />
@@ -579,9 +581,9 @@ export default function FormComponent(props:FormComponentProps) {
                                         error={errors.paymentTerms}
                                         isSubmit = {isSubmit}
                                         setIsSubmit = {setIsSubmit}
-                                        isDarkMode = {props.isDarkMode}
-                                        invoiceData = {props.invoiceData}
-                                        isFormEdit = {props.isFormEdit}
+                                        isDarkMode = {isDarkMode}
+                                        invoiceData = {invoiceData}
+                                        isFormEdit = {isFormEdit}
                                     />
                                 )}
                             />
@@ -594,6 +596,7 @@ export default function FormComponent(props:FormComponentProps) {
                             <input 
                                 className={errors.description ? "error" : ""}
                                 type='text'
+                                id='description'
                                 {...register("description", {
                                     required: true,
                                 })}
@@ -630,7 +633,7 @@ export default function FormComponent(props:FormComponentProps) {
                                                 errors.items && errors.items[index]?.name ? "error" : ""
                                             }
                                             type="text"
-                                            id="name"
+                                            role={`name${index}`}
                                             placeholder="Item Name"
                                             {...register(`items.${index}.name`, {
                                                 required: true 
@@ -646,7 +649,8 @@ export default function FormComponent(props:FormComponentProps) {
                                                 errors.items && errors.items[index]?.quantity ? "error" : ""
                                             }
                                             type="number"
-                                            id="quantity"
+                                            step="any"
+                                            role={`quantity${index}`}
                                             placeholder="Quantity"
                                             {...register(`items.${index}.quantity`, {
                                                 required: true,
@@ -663,7 +667,8 @@ export default function FormComponent(props:FormComponentProps) {
                                                 errors.items && errors.items[index]?.price ? "error" : ""
                                             }
                                             type="number"
-                                            id="price"
+                                            step="any"
+                                            role={`price${index}`}
                                             placeholder="Price"
                                             {...register(`items.${index}.price`, {
                                                 required: true,
@@ -681,7 +686,7 @@ export default function FormComponent(props:FormComponentProps) {
                                                     Number(watch([`items.${index}.quantity`])) *
                                                     Number(watch([`items.${index}.price`]))
                                                 ).toFixed(2)}
-                                                id="total"
+                                                role={`total${index}`}
                                                 placeholder="Total Price"
                                                 type="number"
                                                 {...register(`items.${index}.total`, {
@@ -693,9 +698,9 @@ export default function FormComponent(props:FormComponentProps) {
                                                 }
                                                 disabled 
                                             />
-                                            <SVG onClick={() =>{
+                                            {/* <SVG role={`remove${index}`} onClick={() =>{
                                                 remove(index)
-                                            }} src="\assets\icon-delete.svg" />
+                                            }} src="\assets\icon-delete.svg" /> */}
                                         </TotalInputContainer>
                                     </TotalPriceContainer>
                                 </ItemListContainer>
@@ -708,14 +713,14 @@ export default function FormComponent(props:FormComponentProps) {
                     {errors.items && 
                         <ErrorLabel>- An item must be added and filled out</ErrorLabel>
                     }
-                    {!props.isFormEdit ? 
+                    {!isFormEdit ? 
                     <NewButtonContainer>
                         <div>
                             <DiscardButton onClick={handleClose}>Discard</DiscardButton>
                         </div>
                         <div>
                             <DraftButton type="button" onClick={onSave}>Save as Draft</DraftButton>
-                            <MainButton type="submit">Save & Send</MainButton>
+                            <MainButton name='submit-btn' type="submit">Save & Send</MainButton>
                         </div>
                     </NewButtonContainer>
                     :
@@ -725,28 +730,32 @@ export default function FormComponent(props:FormComponentProps) {
                         </div>
                         <div>
                             <DraftButton type="button" onClick={onSave}>Save Changes</DraftButton>
-                            <MainButton type="submit">Save & Send</MainButton>
+                            <MainButton name='submit-btn' type="submit">Save & Send</MainButton>
                         </div>
                     </NewButtonContainer>
                     }
                     <input
                         {...register("id")}
                         type='hidden'
-                        defaultValue={props.isFormEdit ? props.invoiceData.id : generateID()}
+                        role='form-id'
+                        defaultValue={isFormEdit ? invoiceData.id : generateID()}
                     />
                     <input
                         {...register("total")}
                         type='hidden'
+                        role='form-total'
                         defaultValue={0}
                     />
                     <input
                         {...register("status")}
                         value={'pending'}
                         type='hidden'
+                        role='form-status'
                     />
                     <input
                         {...register("paymentDue")}
                         type='hidden'
+                        role='form-payment-due'
                     />
                 </Form>
             </FormContainer>

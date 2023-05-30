@@ -108,7 +108,7 @@ const StyledEditBtn = styled(EditBtn)`
         color: ${({theme}) => theme.editBtnColorHover};
     }
 `
-export default function InvoiceInfoHeader(props:any){
+export default function InvoiceInfoHeader({ handleEdit, data, isDarkMode, handleWarning, handleStatus}:any){
 
     const DarkTheme = {
         invoiceHeaderBg: "#1E2139",
@@ -129,16 +129,16 @@ export default function InvoiceInfoHeader(props:any){
     }
     
     let paymentColor = 'black'
-    if(props.data.status === 'paid'){
+    if(data.status === 'paid'){
         paymentColor = '#33D69F'
-    }else if(props.data.status === 'pending'){
+    }else if(data.status === 'pending'){
         paymentColor = '#FF8F00'
-    }else if(props.data.status === 'draft'){
+    }else if(data.status === 'draft'){
         paymentColor = '#DFE3FA'
     }
 
     return(
-        <ThemeProvider theme={props.isDarkMode ? DarkTheme : LightTheme}>
+        <ThemeProvider theme={isDarkMode ? DarkTheme : LightTheme}>
             <InvoiceInfoHeaderContainer>
                 <LeftInvoiceInfoContainer>
                     <StatusHeading>Status</StatusHeading>
@@ -147,16 +147,16 @@ export default function InvoiceInfoHeader(props:any){
                             color={paymentColor} 
                             src='\assets\icon-oval.svg' 
                         />
-                        <PaymentStatusText color={paymentColor}>{props.data.status}</PaymentStatusText>
+                        <PaymentStatusText color={paymentColor}>{data.status}</PaymentStatusText>
                     </PaymentStatus>
                 </LeftInvoiceInfoContainer>
                 <RightInvoiceInfoContainer>
-                    <StyledEditBtn onClick={props.handleEdit}>Edit</StyledEditBtn>
-                    <DeleteBtn onClick={props.handleWarning}>Delete</DeleteBtn>
-                {(props.data.status !== "paid" && Object.values(props.data).some((val) => val === '')) ? (
+                    <StyledEditBtn onClick={handleEdit}>Edit</StyledEditBtn>
+                    <DeleteBtn onClick={handleWarning}>Delete</DeleteBtn>
+                {(data.status !== "paid" && Object.values(data).some((val) => val === '')) ? (
                     <MainBtn disabled>Mark as Paid</MainBtn>
                 ) : (
-                    <MainBtn onClick={props.handleStatus}>Mark as Paid</MainBtn>
+                    <MainBtn onClick={handleStatus}>Mark as Paid</MainBtn>
                 )}
                 </RightInvoiceInfoContainer>
             </InvoiceInfoHeaderContainer>

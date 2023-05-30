@@ -54,7 +54,7 @@ const StyledSpan = styled.span`
     font-weight:700;
 `
 
-export default function EmptyInvoices(props:any){
+export default function EmptyInvoices({isDarkMode}:any){
     
     const DarkTheme = {
         paragraphText: "#DFE3FA"
@@ -63,9 +63,9 @@ export default function EmptyInvoices(props:any){
     const LightTheme = {
         paragraphText: "#888EB0"
     }
-
+    
     return(
-        <ThemeProvider theme = {props.isDarkMode ? DarkTheme : LightTheme}>
+        <ThemeProvider theme = {isDarkMode ? DarkTheme : LightTheme}>
             <EmptyContainer>
                 <EmptyImg src='\assets\illustration-empty.svg' />
                 <TextContainer>

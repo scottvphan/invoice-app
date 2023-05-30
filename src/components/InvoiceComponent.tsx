@@ -5,6 +5,7 @@ import SVG from "react-inlinesvg/esm";
 import moment from "moment";
 import { ThemeProvider } from "styled-components";
 import { useLayoutContext } from "./Layout";
+import { InvoiceComponentProps } from "../Types";
 
 interface SVGProps {
     color: string;
@@ -39,36 +40,6 @@ const InvoiceContainer = styled.div`
         ;
     }
 `
-interface data {
-    id:            string;
-    createdAt:     Date;
-    paymentDue:    Date;
-    description:   string;
-    paymentTerms:  number;
-    clientName:    string;
-    clientEmail:   string;
-    status:        string;
-    senderAddress: Address;
-    clientAddress: Address;
-    items:         Item[];
-    total:         number;
-    paymentColor: string;
-    isDarkMode: boolean;
-}
-
-interface Address {
-    street:   string;
-    city:     string;
-    postCode: string;
-    country:  string;
-}
-
-interface Item {
-    name:     string;
-    quantity: number;
-    price:    number;
-    total:    number;
-}
 const InvoiceId = styled(SmallHeading)`
     @media screen and (max-width:425px) {
         font-size:18px;
@@ -173,22 +144,22 @@ const LightTheme = {
     invoiceDueDateColor:"#858BB2",
 }
 
-export default function InvoiceComponent(props:any){
+export default function InvoiceComponent({id, paymentDue, clientName, total, paymentColor, status}: InvoiceComponentProps){
     const { isDarkMode } = useLayoutContext()
 
         return(
             <ThemeProvider theme={isDarkMode ? DarkTheme : LightTheme}>
                 <InvoiceContainer>
-                    <InvoiceId><StyledSpan>#</StyledSpan>{props?.id ? props?.id : "Missing ID"}</InvoiceId>
-                    <InvoiceDueDate>{props?.paymentDue ? "Due " + moment(props?.paymentDue).format('MMM Do YY') : "Missing Due Date"}</InvoiceDueDate>
-                    <InvoicePaymentReciever>{props?.clientName ? props?.clientName : "Missing Client Name"}</InvoicePaymentReciever>
-                    <InvoicePaymentAmount>{props?.total ? "$ " + (props.total).toFixed(2) : "Missing Total Amount"}</InvoicePaymentAmount>
-                    <PaymentStatus color={props.paymentColor+'1A'}>
+                    <InvoiceId><StyledSpan>#</StyledSpan>{id ? id : "Missing ID"}</InvoiceId>
+                    <InvoiceDueDate>{paymentDue ? "Due " + moment(paymentDue).format('MMM Do YY') : "Missing Due Date"}</InvoiceDueDate>
+                    <InvoicePaymentReciever>{clientName ? clientName : "Missing Client Name"}</InvoicePaymentReciever>
+                    <InvoicePaymentAmount>{total ? "$ " + (total).toFixed(2) : "Missing Total Amount"}</InvoicePaymentAmount>
+                    <PaymentStatus color={paymentColor+'1A'}>
                         <StyledSVG 
-                            color={props.paymentColor} 
+                            color={paymentColor} 
                             src='\assets\icon-oval.svg' 
                         />
-                        <PaymentStatusText color={props.paymentColor}>{props?.status ? props?.status : "Missing Status"}</PaymentStatusText>
+                        <PaymentStatusText color={paymentColor}>{status ? status : "Missing Status"}</PaymentStatusText>
                     </PaymentStatus>
                     <RightArrow src="\assets\icon-arrow-right.svg" />
                 </InvoiceContainer>

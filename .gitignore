@@ -17,3 +17,15 @@
 node_modules
 package-lock.json
 .env
+__tests__
+coverage
+__mocks__
+database.rules.json
+firebase.json
+.firebaserc
+.hintrc
+database-debug.log
+database.rules.json
+firebase-debug.log
+firebase.json
+ui-debug.log

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import styled, { ThemeProvider, css } from 'styled-components'
+import styled, { ThemeProvider } from 'styled-components'
 import SVG from 'react-inlinesvg'
 import { getNumberOfDaysInMonth, monthNames, range } from '../utils/DaySorter';
 import moment from 'moment';
@@ -86,14 +86,13 @@ const DayContainer = styled.div`
         transition:0.2s;
     }
 `
-export default function DatePicker(props:any){
+export default function DatePicker({ isSubmit, setIsSubmit, isDarkMode, invoiceData, isFormEdit, onChange, error }:any){
     const [isCalendarActive, setIsCalendarActive] = useState(false)
     const [currentMonth, setCurrentMonth] = useState(new Date().getMonth())
     const [currentYear, setCurrentYear] = useState(new Date().getFullYear())
     const [selectedDate, setSelectedDate] = useState<any>(null)
     const currentDate = new Date().toLocaleDateString('en-us', { year:"numeric", month:"short", day:"numeric"})
     let calendarRef = useRef<HTMLInputElement>(null)
-
     function toggleCalendar(){
         setIsCalendarActive(!isCalendarActive)
     }
@@ -125,7 +124,7 @@ export default function DatePicker(props:any){
                     e.target.getAttribute("data-day")
                     )
                 )
-            props.onChange(
+            onChange(
                 moment(new Date(currentYear, currentMonth, e.target.getAttribute("data-day"))).format('YYYY-MM-DD')
             )
         }
@@ -141,9 +140,9 @@ export default function DatePicker(props:any){
     })
 
     useEffect(() =>{
-            props.setIsSubmit(false)
+            setIsSubmit(false)
             setSelectedDate(null)
-    }, [props.isSubmit])
+    }, [isSubmit])
 
     const DarkTheme = {
         datePickerHeaderBg:"#1E2139",
@@ -163,18 +162,17 @@ export default function DatePicker(props:any){
     }
 
     return(
-        <ThemeProvider theme={props.isDarkMode ? DarkTheme : LightTheme}>
-            <DatePickerContainer className={props.error ? "error" : ""} ref={calendarRef}>
-                <DatePickerHeaderContainer tabIndex={0} onClick={toggleCalendar}>
-                    {!props.isFormEdit ?
+        <ThemeProvider theme={isDarkMode ? DarkTheme : LightTheme}>
+            <DatePickerContainer role='date-picker-container' className={error ? "error" : ""} ref={calendarRef}>
+                <DatePickerHeaderContainer role='date-picker-header' tabIndex={0} onClick={toggleCalendar}>
+                    {!isFormEdit ?
                     selectedDate === null ? 
                         <p>Select a date</p>
                         :
                         <p>{moment(selectedDate).format('MMM DD YYYY')}</p>
-                    
                     :
                     selectedDate === null ?
-                        <p>{props.invoiceData.createdAt != undefined ? moment(props.invoiceData.createdAt).format('MMM DD YYYY') : "Select a date"}</p>
+                        <p>{invoiceData.createdAt != '' ? moment(invoiceData.createdAt).format('MMM DD YYYY') : "Select a date"}</p>
                         :
                         <p>{moment(selectedDate).format('MMM DD YYYY')}</p>
                     }
@@ -183,18 +181,20 @@ export default function DatePicker(props:any){
                     <SVG src='\assets\icon-calendar.svg' />
                 </DatePickerHeaderContainer>
             {isCalendarActive &&
-                <DatePickerCalendar className={props.error ? "error" : ""}>
+                <DatePickerCalendar role='date-picker-calendar' className={error ? "error" : ""}>
                     <MonthContainer>
-                        <SVG 
+                        <img 
                             src = "\assets\icon-arrow-left.svg"
                             onClick={prevMonth}
                             tabIndex={0}
+                            role='prev-month'
                         />
                             <MonthContainer>{monthNames[currentMonth] + ' ' + currentYear}</MonthContainer>
-                        <SVG 
+                        <img 
                             src = "\assets\icon-arrow-right.svg"
                             onClick={nextMonth}
                             tabIndex={0}
+                            role='next-month'
                         />
                     </MonthContainer>
                     <CalendarContainer>
@@ -220,6 +220,7 @@ export default function DatePicker(props:any){
                                             ? "active"
                                             : ""
                                     }
+                                    role={day}
                                 >{day}</p>
                             ))}
                         </DayContainer>

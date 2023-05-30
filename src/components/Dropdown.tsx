@@ -70,47 +70,47 @@ const DownArrow = styled(SVG)`
 const UpArrow = styled(SVG)`
 
 `
-export default function Dropdown(props:any){
+export default function Dropdown({ isOpen, setIsOpen, isDraft, setIsDraft, isPending, setIsPending, isPaid, setIsPaid }:any){
     const { isDarkMode } = useLayoutContext()
 
     let dropdownRef = useRef<HTMLInputElement>(null);
 
     function toggleOpen(){
-        props.setIsOpen(!props.isOpen)
+        setIsOpen(!isOpen)
     }
     const handleEnterKey = (e:any) =>{
         if(e.key === 'Enter'){
-            props.setIsOpen(true)
+            setIsOpen(true)
         }
     }
     const handleEnterCheck = (e:any) =>{
         if(e.key === 'Enter'){
             if(e.target.id === "draft"){
-                props.setIsDraft(!props.isDraft)
+                setIsDraft(!isDraft)
             }else if(e.target.id === "pending"){
-                props.setIsPending(!props.isPending)
+                setIsPending(!isPending)
             }else if(e.target.id === "paid"){
-                props.setIsPaid(!props.isPaid)
+                setIsPaid(!isPaid)
             }
         }
     }
     const handleCheckBox = (e:any) =>{
         if(e.target.id === "draft"){
-            props.setIsDraft(!props.isDraft)
+            setIsDraft(!isDraft)
         }else if(e.target.id === "pending"){
-            props.setIsPending(!props.isPending)
+            setIsPending(!isPending)
         }else if(e.target.id === "paid"){
-            props.setIsPaid(!props.isPaid)
+            setIsPaid(!isPaid)
         }
     }
-    useEffect(() =>{
-        let handler = (e:any)=>{
-            if(!dropdownRef.current?.contains(e.target)){
-                props.setIsOpen(false)
-            }
-        }
-        document.addEventListener('mousedown', handler)
-    })
+    // useEffect(() =>{
+    //     let handler = (e:any)=>{
+    //         if(!dropdownRef.current?.contains(e.target)){
+    //             setIsOpen(false)
+    //         }
+    //     }
+    //     document.addEventListener('mousedown', handler)
+    // })
 
     const LightTheme = {
         dropdownBg: "#FFF",
@@ -122,25 +122,25 @@ export default function Dropdown(props:any){
     return(
         <ThemeProvider theme={isDarkMode ? DarkTheme : LightTheme}>
             <DropDownContainer ref={dropdownRef}>
-                <DropDownHeaderContainer tabIndex={0} onKeyDown={handleEnterKey} onClick={toggleOpen}>
-                    <SmallHeading>{window.innerWidth > 1024 ? 'Filter by status' : 'Filter'}</SmallHeading>
-                {props.isOpen ?  
+                <DropDownHeaderContainer role="dropdown-header" tabIndex={0} onKeyDown={handleEnterKey} onClick={toggleOpen}>
+                    <SmallHeading>Filter By Status</SmallHeading>
+                {isOpen ?  
                     <UpArrow src="\assets\icon-arrow-up.svg" /> : 
                     <DownArrow src="\assets\icon-arrow-down.svg" />
                 }       
                 </DropDownHeaderContainer>
-            {props.isOpen && (
-                <DropdownListContainer>
+            {isOpen && (
+                <DropdownListContainer role="dropdown-list">
                     <DropdownOptionContainer>
-                        <FilterCheckbox id="draft" type='checkbox' checked={props.isDraft} onKeyDown={handleEnterCheck} onChange={handleCheckBox} />
+                        <FilterCheckbox role="draft" id="draft" type='checkbox' checked={isDraft} onKeyDown={handleEnterCheck} onChange={handleCheckBox} />
                         <FilterLabel htmlFor="draft">Draft</FilterLabel>
                     </DropdownOptionContainer>
                     <DropdownOptionContainer>
-                        <FilterCheckbox id="pending" type='checkbox' checked={props.isPending} onKeyDown={handleEnterCheck} onChange={handleCheckBox} />
+                        <FilterCheckbox role="pending" id="pending" type='checkbox' checked={isPending} onKeyDown={handleEnterCheck} onChange={handleCheckBox} />
                         <FilterLabel htmlFor="pending">Pending</FilterLabel>
                     </DropdownOptionContainer>
                     <DropdownOptionContainer>
-                        <FilterCheckbox id="paid" type='checkbox' checked={props.isPaid} onKeyDown={handleEnterCheck} onChange={handleCheckBox} />
+                        <FilterCheckbox role="paid" id="paid" type='checkbox' checked={isPaid} onKeyDown={handleEnterCheck} onChange={handleCheckBox} />
                         <FilterLabel htmlFor="paid">Paid</FilterLabel>
                     </DropdownOptionContainer>
                 </DropdownListContainer>

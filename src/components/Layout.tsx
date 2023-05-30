@@ -52,20 +52,12 @@ const Backdrop = styled.div`
     left: 50%;
     transform: translate(-50%, -50%);
 `
-export default function Layout(props:any) {
+export default function Layout({ isDarkMode, setIsDarkMode, data, setData }:any) {
     const [isFormOpen, setIsFormOpen] = useState(false)
-    const [userFormData, setUserFormData] = useState<any>()
+    const [userFormData, setUserFormData] = useState<any>(undefined)
     const [isFormEdit, setIsFormEdit] = useState(false)
     const [invoiceData, setInvoiceData] = useState<any>()
-    const isDarkMode = props.isDarkMode
-    const setIsDarkMode = props.setIsDarkMode
     const navbarProps = {
-        isDraft: props.isDraft,
-        setIsDraft: props.setIsDraft,
-        isPending: props.isPending,
-        setIsPending: props.setIsPending,
-        isPaid: props.isPaid,
-        setIsPaid: props.setIsPaid,
         isFormOpen: isFormOpen,
         setIsDarkMode: setIsDarkMode,
         isDarkMode: isDarkMode,
@@ -80,8 +72,8 @@ export default function Layout(props:any) {
         setIsFormEdit: setIsFormEdit,
         invoiceData: invoiceData,
         setInvoiceData: setInvoiceData,
-        data: props.data,
-        setData: props.setData,
+        data: data,
+        setData: setData,
     }
     useEffect(() => {
         const handleCloseForm = () => {

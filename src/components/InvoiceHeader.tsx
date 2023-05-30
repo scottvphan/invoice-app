@@ -2,6 +2,8 @@ import { MainParagraph, MainHeading, MainButton, SmallParagraph } from "./Styled
 import styled, {ThemeProvider} from "styled-components";
 import Dropdown from "./Dropdown";
 import { useLayoutContext } from "./Layout";
+import { useEffect } from "react";
+import { InvoiceHeaderProps } from "../Types";
 
 const StyledContainer = styled.div`
     display:flex;
@@ -64,10 +66,9 @@ const InvoiceData = styled(MainParagraph)`
         font-size:12px;
     }
 `
-export default function InvoiceHeader(props:any){
-    
+export default function InvoiceHeader({filteredData,isOpen, setIsOpen, isDraft, setIsDraft, isPending, setIsPending, isPaid, setIsPaid, isDarkMode, setIsFormOpen}:InvoiceHeaderProps){
     function handleNewInvoice(){
-        props.setIsFormOpen(true)
+        setIsFormOpen(true)
     }
 
     const DarkTheme = {
@@ -79,34 +80,51 @@ export default function InvoiceHeader(props:any){
     }
     
     const DropdownProps = {
-        isOpen: props.isOpen,
-        setIsOpen: props.setIsOpen,
-        isDraft: props.isDraft,
-        setIsDraft: props.setIsDraft,
-        isPending: props.isPending,
-        setIsPending: props.setIsPending,
-        isPaid: props.isPaid,
-        setIsPaid: props.setIsPaid,
+        isOpen: isOpen,
+        setIsOpen: setIsOpen,
+        isDraft: isDraft,
+        setIsDraft: setIsDraft,
+        isPending: isPending,
+        setIsPending: setIsPending,
+        isPaid: isPaid,
+        setIsPaid: setIsPaid,
     }
-
     return(
-        <ThemeProvider theme = {props.isDarkMode ? DarkTheme : LightTheme}>
+        <ThemeProvider theme = {isDarkMode ? DarkTheme : LightTheme}>
             <StyledContainer>
                 <InvoiceTextContainer>
                     <InvoiceHeading>Invoices</InvoiceHeading>
-                    {props.data.length === 0 ?
-                    <InvoiceData>No invoices</InvoiceData>
+                    {filteredData.length === 0 ?
+                    <InvoiceData>
+                    {isDraft && isPaid && isPending ? (
+                        "No invoices"
+                    ) : isDraft && isPaid ? (
+                        "No draft or paid invoices"
+                    ) : isDraft && isPending ? (
+                        "No draft or pending invoices"
+                    ) : isPaid && isPending ? (
+                        "No paid or pending invoices"
+                    ) : isDraft ? (
+                        "No draft invoices"
+                    ) : isPaid ? (
+                        "No paid invoices"
+                    ) : isPending ? (
+                        "No pending invoices"
+                    ) : "No invoices selected"}
+                    </InvoiceData>
                     :
-                    <InvoiceData>There are {props.data.length} total invoices</InvoiceData>
+                    <InvoiceData>
+                        {`There are ${filteredData.length} total invoices`}
+                    </InvoiceData>
                     }
                 </InvoiceTextContainer>
                 <InvoiceInputContainer>
                     <Dropdown {...DropdownProps} />
-                    <NewInvoiceBtn onClick={handleNewInvoice}>
+                    <NewInvoiceBtn role="new-invoice-btn" onClick={handleNewInvoice}>
                         <span>
                             <StyledPlusSign src="\assets\icon-plus.svg" />
                         </span>
-                        {window.innerWidth > 1024 ? 'New Invoice' : 'New'}
+                        New Invoice
                     </NewInvoiceBtn>
                 </InvoiceInputContainer>
             </StyledContainer>

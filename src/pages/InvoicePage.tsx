@@ -3,12 +3,19 @@ import { EditButton, DeleteButton, MainButton, Paragraph, StyledLink } from "../
 import SVG from 'react-inlinesvg'
 import InvoiceInfoHeader from "../components/InvoiceInfoHeader"
 import InvoiceInfoComponent from "../components/InvoiceInfoComponent"
-// import InvoiceInfoComponent from "../components/InvoiceInfoComponentBackup"
 import InvoiceBilling from "../components/InvoiceBilling"
 import { useState, useEffect } from 'react';
 import WarningModal from "../components/WarningModal"
 import { useLayoutContext } from "../components/Layout"
 import { useLocation, useNavigate } from "react-router-dom"
+import { useAuth0 } from "@auth0/auth0-react"
+import { initializeApp } from "firebase/app";
+import {
+    getDatabase,
+    ref,
+    onValue,
+    update,
+} from "firebase/database";
 
 const InvoiceInfoPageContainer = styled.div`
     height: 100%;
@@ -127,18 +134,31 @@ const StyledEditBtn = styled(EditBtn)`
     }
 `
 
-export default function Invoice(props:any){
+export default function Invoice({ data, isDarkMode, setIsDarkMode, setData, dataLoaded, setDataLoaded }:any){
     const [isWarning, setIsWarning] = useState(false)
-    const { isDarkMode, setIsFormEdit, setIsFormOpen, setInvoiceData, invoiceData } = useLayoutContext() 
+    const { setIsFormEdit, setIsFormOpen, setInvoiceData, invoiceData } = useLayoutContext() 
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
     const dataParam = queryParams.get("data");
-    const data = dataParam ? JSON.parse(dataParam) : null;
-    const invoicedata = data
+    const invoiceSearchdata = dataParam ? JSON.parse(dataParam) : null;
     const navigate = useNavigate()
+    const { isAuthenticated, user } = useAuth0();
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyC0kmQknp7zr8l10lWYelt7AesZ4UA-x6Y",
+        authDomain: "invoice-app-b1eb0.firebaseapp.com",
+        databaseURL: "https://invoice-app-b1eb0-default-rtdb.firebaseio.com",
+        projectId: "invoice-app-b1eb0",
+        storageBucket: "invoice-app-b1eb0.appspot.com",
+        messagingSenderId: "730679038015",
+        appId: "1:730679038015:web:57b0f244fffde30b77e88a",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
 
     useEffect(() =>{
-        setInvoiceData(data)
+        setInvoiceData(invoiceSearchdata)
     }, [])
     
     function handleWarning(){
@@ -167,23 +187,41 @@ export default function Invoice(props:any){
     }
 
     function handleStatus(){
-        const filteredData = props.data.filter((invoiceData:any) => {
-            if(!invoiceData.id.includes(data.id)){
-                return invoiceData
+        if (isAuthenticated && user?.email) {
+            const replacedEmail = user?.email.replace(".", ",");
+            const invoicesRef = ref(database, `users/${replacedEmail}/invoices`);
+            const listener = onValue(invoicesRef, (snapshot) => {
+                const invoiceData = Object.entries(snapshot.val());
+                const filteredData = invoiceData.filter((invoiceData: any) => {
+                    if (invoiceData[1].id === data.id) {
+                        return invoiceData;
+                    }
+                });
+                const invoiceKey = filteredData[0][0];
+                const invoiceKeyRef = ref(
+                    database,
+                    `users/${replacedEmail}/invoices/${invoiceKey}`
+                );
+                update(invoiceKeyRef, { status: "paid" });
+            });
+            listener();
+            navigate("..");
+            } else{
+                const filteredData = data.filter((InvoiceData:any) =>{
+                    return InvoiceData.id !== invoiceData.id
+                })
+                const result = {...invoiceData, status:'paid'}
+                const paidResult = [result, ...filteredData]
+                setData(paidResult)
+                localStorage.setItem('data', JSON.stringify(paidResult))
+                navigate('..')
             }
-        })
-        const result = {...data, status:'paid'}
-        const testResult = [result, ...filteredData]
-        props.setData(testResult)
-        localStorage.setItem('data', JSON.stringify(testResult))
-        navigate('..')
     }
-    useEffect(() =>{
-    }, [])
+    
     return(
         <ThemeProvider theme={isDarkMode ? DarkTheme : LightTheme}>
             <InvoiceInfoPageContainer>
-                {isWarning && <WarningModal data = {props.data} setData = {props.setData} invoiceData = {data} isDarkMode = {isDarkMode} handleWarning={handleWarning} />}
+                {isWarning && <WarningModal setData = {setData} data = {data} invoiceData={invoiceSearchdata} isDarkMode = {isDarkMode} handleWarning={handleWarning} />}
                 <InvoiceGoBackContainer>
                     <InvoiceGoBack>
                         <EditedLink to={"/"}>
@@ -193,16 +231,16 @@ export default function Invoice(props:any){
                     </InvoiceGoBack>
                 </InvoiceGoBackContainer>
                 <InvoiceHeaderContainer>
-                    <InvoiceInfoHeader handleEdit = {handleEdit} setIsFormOpen = {setIsFormOpen} setIsFormEdit = {setIsFormEdit} data = {data} isDarkMode = {isDarkMode} handleWarning = {handleWarning} handleStatus = {handleStatus} />
+                    <InvoiceInfoHeader handleEdit = {handleEdit} setIsFormOpen = {setIsFormOpen} setIsFormEdit = {setIsFormEdit} data = {invoiceSearchdata} isDarkMode = {isDarkMode} handleWarning = {handleWarning} handleStatus = {handleStatus} />
                 </InvoiceHeaderContainer>
                 <InvoiceInfoComponentContainer>
-                    <InvoiceInfoComponent data = {data} isDarkMode = {isDarkMode} />
-                    <InvoiceBilling data = {data} isDarkMode = {isDarkMode} />
+                    <InvoiceInfoComponent data = {invoiceSearchdata} isDarkMode = {isDarkMode} />
+                    <InvoiceBilling data = {invoiceSearchdata} isDarkMode = {isDarkMode} />
                 </InvoiceInfoComponentContainer>
                 <InvoiceMobileBtnContainer>
                     <StyledEditBtn onClick={handleEdit}>Edit</StyledEditBtn>
                     <DeleteBtn onClick={handleWarning}>Delete</DeleteBtn>
-                {(data.status !== "paid" && Object.values(data).some((val) => val === '')) ? (
+                {(data.status !== "paid" && Object.values(invoiceSearchdata).some((val) => val === '')) ? (
                     <MainBtn disabled>Mark as Paid</MainBtn>
                 ) : (
                     <MainBtn onClick={handleStatus}>Mark as Paid</MainBtn>

@@ -93,7 +93,7 @@ const AddressParagraph = styled(StyledParagraph)`
     }
 `
 
-export default function InvoiceInfoComponent(props:any) {
+export default function InvoiceInfoComponent({ data, isDarkMode }:any) {
 
     const DarkTheme = {
         paragraphColor: "#DFE3FA"
@@ -104,39 +104,39 @@ export default function InvoiceInfoComponent(props:any) {
     }
     
     return (
-        <ThemeProvider theme={props.isDarkMode ? DarkTheme : LightTheme}>
+        <ThemeProvider theme={isDarkMode ? DarkTheme : LightTheme}>
             <InvoiceInfoContainer>
                 <InvoiceIdContainer>
                     <InvoiceId>
-                        <StyledSpan>#</StyledSpan>{props.data.id ? props.data.id : "Missing ID"}
+                        <StyledSpan>#</StyledSpan>{data.id ? data.id : "Missing ID"}
                     </InvoiceId>
-                    <StyledParagraph>{props.data.description ? props.data.description : "Missing Description"}</StyledParagraph>
+                    <StyledParagraph>{data.description ? data.description : "Missing Description"}</StyledParagraph>
                 </InvoiceIdContainer>
                 <InvoiceAddressContainer>
-                    <AddressParagraph>{props.data.senderAddress.street ? props.data.senderAddress.street : "Missing Street"}</AddressParagraph>
-                    <AddressParagraph>{props.data.senderAddress.city ? props.data.senderAddress.city : "Missing City"}</AddressParagraph>
-                    <AddressParagraph>{props.data.senderAddress.postCode ? props.data.senderAddress.postCode : "Missing Post Code"}</AddressParagraph>
-                    <AddressParagraph>{props.data.senderAddress.country ? props.data.senderAddress.country : "Missing Country"}</AddressParagraph>
+                    <AddressParagraph>{data.senderAddress.street ? data.senderAddress.street : "Missing Sender Street"}</AddressParagraph>
+                    <AddressParagraph>{data.senderAddress.city ? data.senderAddress.city : "Missing Sender City"}</AddressParagraph>
+                    <AddressParagraph>{data.senderAddress.postCode ? data.senderAddress.postCode : "Missing Sender Post Code"}</AddressParagraph>
+                    <AddressParagraph>{data.senderAddress.country ? data.senderAddress.country : "Missing Sender Country"}</AddressParagraph>
                 </InvoiceAddressContainer>
                 <InvoiceDateContainer>
                     <StyledParagraph>Invoice Date</StyledParagraph>
-                    <SmallHeading>{props.data.createdAt ? props.data.createdAt : "Missing Creation Date"}</SmallHeading>
+                    <SmallHeading>{data.createdAt ? data.createdAt : "Missing Creation Date"}</SmallHeading>
                 </InvoiceDateContainer>
                 <InvoicePaymentDueContainer>
                     <StyledParagraph>Payment Due</StyledParagraph>
-                    <SmallHeading>{props.data.paymentDue ? props.data.paymentDue : "Missing Due Date"}</SmallHeading>
+                    <SmallHeading>{data.paymentDue ? data.paymentDue : "Missing Due Date"}</SmallHeading>
                 </InvoicePaymentDueContainer>
                 <InvoiceBillingContainer>
                     <StyledParagraph>Bill To</StyledParagraph>
-                    <SmallHeading>{props.data.clientName}</SmallHeading>
-                    <StyledParagraph>{props.data.clientAddress.street ? props.data.clientAddress.street : "Missing Street"}</StyledParagraph>
-                    <StyledParagraph>{props.data.clientAddress.city ? props.data.clientAddress.city : "Missing City"}</StyledParagraph>
-                    <StyledParagraph>{props.data.clientAddress.postCode ? props.data.clientAddress.postCode : "Missing Post Code"}</StyledParagraph>
-                    <StyledParagraph>{props.data.clientAddress.country ? props.data.clientAddress.country : "Missing Country"}</StyledParagraph>
+                    <SmallHeading>{data.clientName}</SmallHeading>
+                    <StyledParagraph>{data.clientAddress.street ? data.clientAddress.street : "Missing Client Street"}</StyledParagraph>
+                    <StyledParagraph>{data.clientAddress.city ? data.clientAddress.city : "Missing Client City"}</StyledParagraph>
+                    <StyledParagraph>{data.clientAddress.postCode ? data.clientAddress.postCode : "Missing Client Post Code"}</StyledParagraph>
+                    <StyledParagraph>{data.clientAddress.country ? data.clientAddress.country : "Missing Client Country"}</StyledParagraph>
                 </InvoiceBillingContainer>
                 <InvoiceEmailContainer>
                     <StyledParagraph>Sent to</StyledParagraph>
-                    <SmallHeading>{props.data.clientEmail ? props.data.clientEmail : "Missing Email"}</SmallHeading>
+                    <SmallHeading>{data.clientEmail ? data.clientEmail : "Missing Email"}</SmallHeading>
                 </InvoiceEmailContainer>
             </InvoiceInfoContainer>
         </ThemeProvider>

@@ -201,7 +201,7 @@ const MobileContainer = styled.div`
     color: ${(theme) => theme.theme.mobileContainerColor};
 `
 
-export default function InvoiceBillingComponent(props:any){
+export default function InvoiceBillingComponent({ data, isDarkMode }:any){
     const DarkTheme = {
         invoiceBillingBg: "#252945;",
         itemNameHeadingColor: "#DFE3FA",
@@ -225,29 +225,32 @@ export default function InvoiceBillingComponent(props:any){
         mobileContainerColor:"#7E88C3"
     }
     
-    const mappedData = props.data.items.map((data:any) => {
+    const mappedData = 
+    data.items ?
+    data.items.map((data:any) => {
         return (
             <Fragment key={uuidv4()}>
-                <ItemName key={uuidv4()}>{data.name}</ItemName>
-                <Quantity key={uuidv4()}>{data.quantity}</Quantity>
-                <Price key={uuidv4()}><span>$ </span>{data.price.toFixed(2)}</Price>
-                <Total key={uuidv4()}><span>$ </span>{data.total.toFixed(2)}</Total>
+                <ItemName key={uuidv4()}>{data.name ? data.name : "Missing Name"}</ItemName>
+                <Quantity key={uuidv4()}>{data.quantity? data.quantity : 0}</Quantity>
+                <Price key={uuidv4()}><span>$ </span>{data.price ? data.price.toFixed(2) : 0}</Price>
+                <Total key={uuidv4()}><span>$ </span>{data.total ? data.total.toFixed(2) : 0}</Total>
                 <MobileGridContainer>
-                    <ItemNameMobile key={uuidv4()}>{data.name}</ItemNameMobile>
+                    <ItemNameMobile key={uuidv4()}>{data.name ? data.name : "Missing Name"}</ItemNameMobile>
                     <MobileContainer>
-                    <QuantityMobile key={uuidv4()}>{data.quantity}</QuantityMobile>
+                    <QuantityMobile key={uuidv4()}>{data.quantity ? data.quantity : 0}</QuantityMobile>
                     <SmallHeading>x</SmallHeading>
-                    <PriceMobile key={uuidv4()}><span>$ </span>{data.price.toFixed(2)}</PriceMobile>
+                    <PriceMobile key={uuidv4()}><span>$ </span>{data.price ? data.price.toFixed(2) : 0}</PriceMobile>
                     </MobileContainer>
-                    <TotalMobile key={uuidv4()}><span>$ </span>{data.total.toFixed(2)}</TotalMobile>
+                    <TotalMobile key={uuidv4()}><span>$ </span>{data.total ? data.quantity.toFixed(2) : 0}</TotalMobile>
                 </MobileGridContainer>
             </Fragment>
         )
     }
     )
-        
+    :
+    <div></div>
     return(
-        <ThemeProvider theme = {props.isDarkMode ? DarkTheme : LightTheme}>
+        <ThemeProvider theme = {isDarkMode ? DarkTheme : LightTheme}>
             <InvoiceInfoBillingContainer>
                 <InvoiceBilling key={uuidv4()}>
                     <ItemNameHeading>Item Name</ItemNameHeading>
@@ -258,7 +261,7 @@ export default function InvoiceBillingComponent(props:any){
                 </InvoiceBilling>
                 <InvoiceAmount>
                     <Amount>Amount Due</Amount>
-                    <TotalPrice><span>$</span>{props.data.total.toFixed(2)}</TotalPrice>
+                    <TotalPrice><span>$</span>{data.total ? data.total.toFixed(2) : 0}</TotalPrice>
                 </InvoiceAmount>
             </InvoiceInfoBillingContainer>
         </ThemeProvider>
